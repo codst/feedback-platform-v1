@@ -3,9 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Create - Your Platform</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    hello world
+
+    <header>
+        <nav>
+            <a href="index.html">Your Platform</a>
+
+            <div>
+                <a href="index.html#explore">Explore</a>
+                <a href="create.html">Create</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h1>Create</h1>
+
+            <form id="create-form">
+                <div class="form-group">
+                    <label for="post-title">Title</label>
+                    <input 
+                        type="text" 
+                        id="post-title" 
+                        name="title" 
+                        placeholder="What's your idea?"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="post-content">Content</label>
+                    <textarea 
+                        id="post-content" 
+                        name="content" 
+                        placeholder="Share the details..."
+                        required
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="publish-btn">Publish</button>
+            </form>
+
+            <div id="form-error" style="color: #d32f2f; margin-top: 16px; display: none;"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Your Platform</p>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
