@@ -65,3 +65,53 @@ footer {
     border-top: 1px solid #ddd;
     padding: 30px 40px;
 }
+
+/* Create form styles */
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    font-family: Arial, sans-serif;
+}
+
+.form-group input[type="text"] {
+    min-height: 44px;
+}
+
+.form-group textarea {
+    min-height: 200px;
+    resize: vertical;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #111;
+    background-color: #fafafa;
+}
+
+.publish-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    background: #111;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.publish-btn:hover {
+    background: #333;
+}
