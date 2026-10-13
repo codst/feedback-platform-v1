@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create - Your Platform</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <header>
@@ -24,25 +26,15 @@
             <h1>Create</h1>
 
             <form id="create-form">
+                {% csrf_token %}
                 <div class="form-group">
                     <label for="post-title">Title</label>
-                    <input 
-                        type="text" 
-                        id="post-title" 
-                        name="title" 
-                        placeholder="What's your idea?"
-                        required
-                    >
+                    <input type="text" id="post-title" name="title" placeholder="What's your idea?" required>
                 </div>
 
                 <div class="form-group">
                     <label for="post-content">Content</label>
-                    <textarea 
-                        id="post-content" 
-                        name="content" 
-                        placeholder="Share the details..."
-                        required
-                    ></textarea>
+                    <textarea id="post-content" name="content" placeholder="Share the details..." required></textarea>
                 </div>
 
                 <button type="submit" class="publish-btn">Publish</button>
@@ -58,4 +50,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
