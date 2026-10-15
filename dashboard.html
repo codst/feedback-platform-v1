@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Feedback Platform</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <header>
+        <nav>
+            <a href="{% url 'index' %}">Feedback Platform</a>
+
+            <div>
+                <a href="{% url 'index' %}#explore">Explore</a>
+                <a href="{% url 'create' %}">Create</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'public_profile' user.username %}">{{ user.username }}</a>
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link-btn">Logout</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <section>
+            <h1>Dashboard</h1>
+            <p class="dashboard-subtitle">Welcome back, <strong>{{ user.username }}</strong>.</p>
+
+            <div class="dashboard-actions">
+                <a href="{% url 'create' %}" class="publish-btn">+ New Post</a>
+                <a href="{% url 'public_profile' user.username %}">View your public profile</a>
+            </div>
+        </section>
+
+        <section>
+            <h2>Your Posts</h2>
+
+            {% if user_posts %}
+            {% for post in user_posts %}
+            <article class="dashboard-post">
+                <div class="dashboard-post-header">
+                    <h3>{{ post.title }}</h3>
+                    <div class="dashboard-post-actions">
+                        <a href="{% url 'edit_post' post.id %}">Edit</a>
+                        <form method="post" action="{% url 'delete_post' post.id %}" class="inline-form"
+                            onsubmit="return confirm('Delete post \'{{ post.title|escapejs }}\'? This cannot be undone.');">
+                            {% csrf_token %}
+                            <button type="submit" class="danger-btn">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                <p class="post-content-preview">{{ post.content|truncatewords:30 }}</p>
+                <p class="post-meta">Posted on {{ post.created_at|date:"N j, Y" }}</p>
+            </article>
+            {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <p>You haven't published anything yet.</p>
+                <a href="{% url 'create' %}" class="publish-btn">Publish your first post</a>
+            </div>
+            {% endif %}
+        </section>
+    </main>
+
+    <footer>
+        <p>Your Platform</p>
+    </footer>
+
+</body>
+
+</html>

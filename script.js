@@ -17,7 +17,7 @@ function checkServerPort() {
     const errorDiv = document.getElementById('form-error');
     if (window.location.port && window.location.port !== '8000') {
         if (errorDiv) {
-            errorDiv.innerHTML = `⚠️ <strong>Note:</strong> You are currently viewing this page through Live Server on <strong>port ${window.location.port}</strong>.<br><br>The Django backend is running on <strong>port 8000</strong>. Please open <a href="http://127.0.0.1:8000/create.html" style="color: #0d47a1; text-decoration: underline; font-weight: bold;">http://127.0.0.1:8000/create.html</a> to publish posts to the database.`;
+            errorDiv.innerHTML = `⚠️ <strong>Note:</strong> You are currently viewing this page through Live Server on <strong>port ${window.location.port}</strong>.<br><br>The Django backend is running on <strong>port 8000</strong>. Please open <a href="http://127.0.0.1:8000/create/" style="color: #0d47a1; text-decoration: underline; font-weight: bold;">http://127.0.0.1:8000/create/</a> to publish posts to the database.`;
             errorDiv.style.display = 'block';
         }
     }
@@ -33,7 +33,7 @@ async function handleCreatePost(e) {
 
     if (window.location.port && window.location.port !== '8000') {
         if (errorDiv) {
-            errorDiv.innerHTML = `⚠️ <strong>Cannot Publish:</strong> You are submitting from <strong>port ${window.location.port}</strong> (Live Server), which cannot connect to Django.<br><br>👉 Please open and submit via <a href="http://127.0.0.1:8000/create.html" style="color: #0d47a1; text-decoration: underline; font-weight: bold;">http://127.0.0.1:8000/create.html</a>.`;
+            errorDiv.innerHTML = `⚠️ <strong>Note:</strong> You are on port ${window.location.port} (Live Server). Please open <a href="http://127.0.0.1:8000/create/" style="color:#0d47a1;text-decoration:underline;font-weight:bold;">http://127.0.0.1:8000/create/</a> to publish.`;
             errorDiv.style.display = 'block';
         }
         return;
@@ -73,6 +73,12 @@ async function handleCreatePost(e) {
 
         const data = await response.json().catch(() => ({}));
 
+        // 401 means the user is not logged in — redirect to login page
+        if (response.status === 401) {
+            window.location.href = '/login/?next=/create/';
+            return;
+        }
+
         if (!response.ok) {
             throw new Error(data.error || `Server returned error (${response.status} ${response.statusText}).`);
         }
@@ -80,7 +86,7 @@ async function handleCreatePost(e) {
         createForm.reset();
         localStorage.removeItem('posts');
 
-        window.location.href = 'index.html#explore';
+        window.location.href = '/#explore';
     } catch (err) {
         if (errorDiv) {
             errorDiv.textContent = err.message || 'Network error. Could not connect to the server.';
@@ -121,7 +127,7 @@ async function loadPosts() {
             }
         }
 
-        if (storedPostsContainer) {
+        if (storedPostsContainer && posts.length > 0) {
             storedPostsContainer.innerHTML = '';
 
             posts.forEach(post => {
@@ -133,9 +139,9 @@ async function loadPosts() {
                 const content = document.createElement('p');
                 content.textContent = post.content;
 
+                // Build author link if profile URL is available
                 const meta = document.createElement('p');
-                meta.style.color = '#666';
-                meta.style.fontSize = '14px';
+                meta.className = 'post-meta';
 
                 const date = new Date(post.created_at);
                 const formattedDate = !isNaN(date.getTime())
@@ -145,7 +151,22 @@ async function loadPosts() {
                     })
                     : '';
 
-                meta.textContent = 'posted ' + formattedDate;
+                if (post.author && post.author_profile_url) {
+                    const authorLink = document.createElement('a');
+                    authorLink.href = post.author_profile_url;
+                    authorLink.textContent = post.author;
+                    meta.append('by ');
+                    meta.appendChild(authorLink);
+                    if (formattedDate) {
+                        meta.append(' · ' + formattedDate);
+                    }
+                } else {
+                    const authorName = post.author || 'Unknown author';
+                    meta.append(`by ${authorName}`);
+                    if (formattedDate) {
+                        meta.append(' · ' + formattedDate);
+                    }
+                }
 
                 article.appendChild(title);
                 article.appendChild(content);

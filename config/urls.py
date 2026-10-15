@@ -21,6 +21,8 @@ from django.views.static import serve
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include('accounts.urls')),
+    path('accounts/', include('accounts.urls')),
     path('', include('posts.urls')),
     path('style.css', serve, {'document_root': settings.BASE_DIR, 'path': 'style.css'}),
     path('script.js', serve, {'document_root': settings.BASE_DIR, 'path': 'script.js'}),

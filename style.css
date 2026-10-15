@@ -18,7 +18,35 @@ nav {
 
 nav div {
     display: flex;
+    align-items: center;
     gap: 24px;
+}
+
+.logout-form {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+}
+
+.nav-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 16px;
+    color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.nav-link-btn:hover {
+    text-decoration: underline;
+}
+
+.nav-user {
+    font-size: 16px;
+    color: #555;
+    font-weight: bold;
 }
 
 a {
@@ -66,7 +94,40 @@ footer {
     padding: 30px 40px;
 }
 
-/* Create form styles */
+/* Alert & Message styles */
+.messages {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px 0;
+}
+
+.alert {
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+    border: 1px solid #c8e6c9;
+}
+
+.alert-error {
+    background-color: #ffebee;
+    color: #b71c1c;
+    border: 1px solid #ffcdd2;
+}
+
+.alert-info {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    border: 1px solid #bbdefb;
+}
+
+/* Form styles */
 .form-group {
     margin-bottom: 24px;
 }
@@ -79,6 +140,8 @@ footer {
 }
 
 .form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
 .form-group textarea {
     width: 100%;
     padding: 12px;
@@ -87,7 +150,9 @@ footer {
     font-family: Arial, sans-serif;
 }
 
-.form-group input[type="text"] {
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
     min-height: 44px;
 }
 
@@ -96,14 +161,50 @@ footer {
     resize: vertical;
 }
 
-.form-group input[type="text"]:focus,
+.form-group input:focus,
 .form-group textarea:focus {
     outline: none;
     border-color: #111;
     background-color: #fafafa;
 }
 
-.publish-btn {
+.field-error {
+    color: #d32f2f;
+    font-size: 14px;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.field-help {
+    color: #666;
+    font-size: 13px;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.field-help ul {
+    margin: 4px 0 0 18px;
+    padding: 0;
+}
+
+.auth-card {
+    max-width: 480px;
+}
+
+.auth-footer {
+    margin-top: 24px;
+    font-size: 15px;
+    color: #666;
+}
+
+.auth-footer a {
+    color: #111;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.publish-btn,
+.submit-btn {
     padding: 12px 24px;
     font-size: 16px;
     background: #111;
@@ -112,6 +213,155 @@ footer {
     cursor: pointer;
 }
 
-.publish-btn:hover {
+.publish-btn:hover,
+.submit-btn:hover {
     background: #333;
+}
+
+/* Post metadata (author, date) */
+.post-meta {
+    color: #666;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.post-meta a {
+    color: #333;
+    text-decoration: underline;
+}
+
+.post-meta a:hover {
+    color: #111;
+}
+
+/* Dashboard */
+.dashboard-subtitle {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 32px;
+}
+
+.dashboard-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 0;
+}
+
+.dashboard-actions a:not(.publish-btn) {
+    font-size: 15px;
+    color: #555;
+    text-decoration: underline;
+}
+
+.dashboard-post {
+    padding: 24px 0;
+    border-top: 1px solid #ddd;
+}
+
+.dashboard-post:last-child {
+    border-bottom: 1px solid #ddd;
+}
+
+.dashboard-post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.dashboard-post-header h3 {
+    font-size: 20px;
+    margin: 0;
+}
+
+.dashboard-post-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.dashboard-post-actions a {
+    font-size: 14px;
+    color: #555;
+    text-decoration: underline;
+}
+
+.dashboard-post-actions a:hover {
+    color: #111;
+}
+
+.post-content-preview {
+    color: #444;
+    margin-bottom: 8px;
+}
+
+/* Danger (delete) button */
+.danger-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 14px;
+    color: #b71c1c;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.danger-btn:hover {
+    color: #7f0000;
+}
+
+/* Inline form (used for delete button inside dashboard article) */
+.inline-form {
+    display: inline;
+    margin: 0;
+}
+
+/* Form row (button + cancel link side by side) */
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 8px;
+}
+
+.cancel-link {
+    font-size: 15px;
+    color: #555;
+    text-decoration: underline;
+}
+
+.cancel-link:hover {
+    color: #111;
+}
+
+/* Empty state */
+.empty-state {
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.empty-state p {
+    color: #666;
+    font-size: 16px;
+    margin: 0;
+}
+
+.empty-state-text {
+    color: #666;
+    font-size: 16px;
+    padding: 40px 0;
+}
+
+/* Profile page */
+.profile-joined {
+    color: #888;
+    font-size: 15px;
+    margin-top: -16px;
+    margin-bottom: 0;
 }

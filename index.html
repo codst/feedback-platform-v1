@@ -5,23 +5,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedback Platform</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
     <header>
         <nav>
-            <a href="index.html">Feedback Platform</a>
+            <a href="{% url 'index' %}">Feedback Platform</a>
 
             <div>
-                <a href="#explore">Explore</a>
-                <a href="create.html">Create</a>
+                <a href="{% url 'index' %}#explore">Explore</a>
+                <a href="{% url 'create' %}">Create</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'public_profile' user.username %}">{{ user.username }}</a>
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link-btn">Logout</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Register</a>
+                {% endif %}
             </div>
         </nav>
     </header>
 
     <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
         <section>
             <h1>Make things.<br>Share them.<br>Improve them.</h1>
 
@@ -35,23 +53,41 @@
         <section id="explore">
             <h2>Recent projects</h2>
 
-            <article>
-                <h3>A Small Game</h3>
-                <p>
-                    A browser game experimenting with simple mechanics.
-                </p>
-                <p>by alex</p>
-                <a href="project.html">View project</a>
-            </article>
+            <div id="stored-posts-container">
+                {% for post in posts %}
+                <article>
+                    <h3>{{ post.title }}</h3>
+                    <p>{{ post.content|truncatewords:40 }}</p>
+                    <p class="post-meta">
+                        {% if post.author %}
+                        by <a href="{% url 'public_profile' post.author.username %}">{{ post.author.username }}</a>
+                        {% else %}
+                        by Unknown author
+                        {% endif %}
+                        &middot; {{ post.created_at|date:"N j, Y" }}
+                    </p>
+                </article>
+                {% empty %}
+                {# Static placeholder articles shown before any posts are published #}
+                <article>
+                    <h3>A Small Game</h3>
+                    <p>
+                        A browser game experimenting with simple mechanics.
+                    </p>
+                    <p class="post-meta">by alex</p>
+                    <a href="{% url 'project' %}">View project</a>
+                </article>
 
-            <article>
-                <h3>CSS Experiment</h3>
-                <p>
-                    An experiment exploring what can be made with CSS.
-                </p>
-                <p>by sam</p>
-                <a href="project.html">View project</a>
-            </article>
+                <article>
+                    <h3>CSS Experiment</h3>
+                    <p>
+                        An experiment exploring what can be made with CSS.
+                    </p>
+                    <p class="post-meta">by sam</p>
+                    <a href="{% url 'project' %}">View project</a>
+                </article>
+                {% endfor %}
+            </div>
         </section>
     </main>
 
@@ -59,7 +95,7 @@
         <p>Your Platform</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="/script.js"></script>
 </body>
 
 </html>

@@ -4,37 +4,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create - Your Platform</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Create - Feedback Platform</title>
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
 
     <header>
         <nav>
-            <a href="index.html">Your Platform</a>
+            <a href="{% url 'index' %}">Feedback Platform</a>
 
             <div>
-                <a href="index.html#explore">Explore</a>
-                <a href="create.html">Create</a>
+                <a href="{% url 'index' %}#explore">Explore</a>
+                <a href="{% url 'create' %}">Create</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'public_profile' user.username %}">{{ user.username }}</a>
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link-btn">Logout</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Register</a>
+                {% endif %}
             </div>
         </nav>
     </header>
 
     <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
         <section>
             <h1>Create</h1>
 
-            <form id="create-form">
+            {#
+                The create form uses both a JS fetch path (via script.js) and a
+                server-side fallback (method="post" action="{% url 'create' %}").
+                script.js intercepts the submit event and sends JSON to /api/posts/.
+                If JS is disabled, the form falls back to a standard POST to /create/.
+                Both paths require authentication — enforced in the view, not the template.
+            #}
+            <form id="create-form" method="post" action="{% url 'create' %}">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="post-title">Title</label>
-                    <input type="text" id="post-title" name="title" placeholder="What's your idea?" required>
+                    <input type="text" id="post-title" name="title" placeholder="What's your idea?" required
+                        value="{{ form.title.value|default:'' }}">
+                    {% if form.title.errors %}
+                    <div class="field-error">
+                        {% for error in form.title.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="form-group">
                     <label for="post-content">Content</label>
-                    <textarea id="post-content" name="content" placeholder="Share the details..." required></textarea>
+                    <textarea id="post-content" name="content" placeholder="Share the details..."
+                        required>{{ form.content.value|default:'' }}</textarea>
+                    {% if form.content.errors %}
+                    <div class="field-error">
+                        {% for error in form.content.errors %}<div>{{ error }}</div>{% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <button type="submit" class="publish-btn">Publish</button>
@@ -48,7 +85,7 @@
         <p>Your Platform</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="/script.js"></script>
 </body>
 
 </html>

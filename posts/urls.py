@@ -2,13 +2,28 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Public pages
     path('', views.index, name='index'),
     path('index.html', views.index, name='index_html'),
-    path('create/', views.create, name='create'),
-    path('create.html', views.create, name='create_html'),
     path('explore/', views.explore, name='explore'),
     path('explore.html', views.explore, name='explore_html'),
     path('project.html', views.project, name='project'),
     path('feedback.html', views.feedback, name='feedback'),
+
+    # Create post (login required — enforced in the view)
+    path('create/', views.create, name='create'),
+    path('create.html', views.create, name='create_html'),
+
+    # Edit and delete (login required + ownership — enforced in views)
+    path('posts/<int:post_id>/edit/', views.edit_post, name='edit_post'),
+    path('posts/<int:post_id>/delete/', views.delete_post, name='delete_post'),
+
+    # Dashboard (login required)
+    path('dashboard/', views.dashboard, name='dashboard'),
+
+    # Public user profiles
+    path('users/<str:username>/', views.public_profile, name='public_profile'),
+
+    # JSON API used by script.js
     path('api/posts/', views.api_posts, name='api_posts'),
 ]

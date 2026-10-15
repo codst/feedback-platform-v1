@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ profile_user.username }} - Feedback Platform</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <header>
+        <nav>
+            <a href="{% url 'index' %}">Feedback Platform</a>
+
+            <div>
+                <a href="{% url 'index' %}#explore">Explore</a>
+                <a href="{% url 'create' %}">Create</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'public_profile' user.username %}">{{ user.username }}</a>
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link-btn">Logout</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h1>{{ profile_user.username }}</h1>
+            <p class="profile-joined">Member since {{ profile_user.date_joined|date:"F Y" }}</p>
+        </section>
+
+        <section>
+            <h2>Posts by {{ profile_user.username }}</h2>
+
+            {% if user_posts %}
+            {% for post in user_posts %}
+            <article>
+                <h3>{{ post.title }}</h3>
+                <p>{{ post.content|truncatewords:40 }}</p>
+                <p class="post-meta">Posted on {{ post.created_at|date:"N j, Y" }}</p>
+            </article>
+            {% endfor %}
+            {% else %}
+            <p class="empty-state-text">{{ profile_user.username }} hasn't published anything yet.</p>
+            {% endif %}
+        </section>
+    </main>
+
+    <footer>
+        <p>Your Platform</p>
+    </footer>
+
+</body>
+
+</html>
