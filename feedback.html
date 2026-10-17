@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constructive Feedback Framework - Feedback Platform</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <header>
+        <nav>
+            <a href="{% url 'index' %}">Feedback Platform</a>
+
+            <div>
+                <a href="{% url 'index' %}#explore">Explore</a>
+                <a href="{% url 'create' %}">Create</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'public_profile' user.username %}">{{ user.username }}</a>
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link-btn">Logout</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h1>Constructive Feedback Framework</h1>
+            <p>Our mission is to help creators receive actionable, kind, and useful peer feedback on their work.</p>
+        </section>
+
+        <section>
+            <h2>The Three Pillars of Great Feedback</h2>
+
+            <article>
+                <h3>1. What Works Well</h3>
+                <p>Highlight the strengths of the project. What caught your eye? Which interactions, visual choices, or
+                    ideas were intuitive or delightful? Starting with positive reinforcement builds confidence and
+                    clarity on what should be preserved.</p>
+            </article>
+
+            <article>
+                <h3>2. What Could Be Improved</h3>
+                <p>Identify areas of friction, confusion, or potential bugs without being harsh. Be specific: instead of
+                    "the UI is confusing," say "it wasn't obvious where to click next after filling out the form."</p>
+            </article>
+
+            <article>
+                <h3>3. Suggestions &amp; Next Steps</h3>
+                <p>Offer concrete ideas or alternatives the creator can experiment with. Suggesting a small tweak, a
+                    helpful library, or a fresh perspective often sparks the next breakthrough.</p>
+            </article>
+        </section>
+
+        <section>
+            <h2>Ready to give feedback?</h2>
+            <p>Explore recent projects shared by the community, leave a like to show support, and join the discussion.
+            </p>
+            <a href="{% url 'index' %}#explore" class="publish-btn inline-btn">Explore Projects</a>
+        </section>
+    </main>
+
+    <footer>
+        <p>Your Platform</p>
+    </footer>
+
+</body>
+
+</html>

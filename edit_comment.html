@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Comment - Feedback Platform</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <header>
+        <nav>
+            <a href="{% url 'index' %}">Feedback Platform</a>
+
+            <div>
+                <a href="{% url 'index' %}#explore">Explore</a>
+                <a href="{% url 'create' %}">Create</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'public_profile' user.username %}">{{ user.username }}</a>
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link-btn">Logout</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <section class="auth-card">
+            <h1>Edit Comment</h1>
+            <p class="post-meta">Commenting on: <strong><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></strong></p>
+
+            <form method="post" action="{% url 'edit_comment' post.id comment.id %}" novalidate>
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="{{ form.content.id_for_label }}">Your Feedback / Comment</label>
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                    <div class="field-error">
+                        {% for error in form.content.errors %}
+                        <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <button type="submit" class="submit-btn">Save Changes</button>
+                    <a href="{% url 'post_detail' post.id %}" class="cancel-link">Cancel</a>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>Your Platform</p>
+    </footer>
+
+</body>
+
+</html>

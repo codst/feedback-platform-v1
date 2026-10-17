@@ -58,8 +58,9 @@
             {% for post in user_posts %}
             <article class="dashboard-post">
                 <div class="dashboard-post-header">
-                    <h3>{{ post.title }}</h3>
+                    <h3><a href="{% url 'post_detail' post.id %}" class="post-title-link">{{ post.title }}</a></h3>
                     <div class="dashboard-post-actions">
+                        <a href="{% url 'post_detail' post.id %}">View</a>
                         <a href="{% url 'edit_post' post.id %}">Edit</a>
                         <form method="post" action="{% url 'delete_post' post.id %}" class="inline-form"
                             onsubmit="return confirm('Delete post \'{{ post.title|escapejs }}\'? This cannot be undone.');">

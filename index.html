@@ -55,9 +55,9 @@
 
             <div id="stored-posts-container">
                 {% for post in posts %}
-                <article>
-                    <h3>{{ post.title }}</h3>
-                    <p>{{ post.content|truncatewords:40 }}</p>
+                <article class="explore-post-card" data-post-id="{{ post.id }}">
+                    <h3><a href="{% url 'post_detail' post.id %}" class="post-title-link">{{ post.title }}</a></h3>
+                    <p class="post-content-preview">{{ post.content|truncatewords:40 }}</p>
                     <p class="post-meta">
                         {% if post.author %}
                         by <a href="{% url 'public_profile' post.author.username %}">{{ post.author.username }}</a>
@@ -66,6 +66,36 @@
                         {% endif %}
                         &middot; {{ post.created_at|date:"N j, Y" }}
                     </p>
+
+                    <div class="post-card-actions">
+                        {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'toggle_like' post.id %}" class="like-form inline-form" data-post-id="{{ post.id }}">
+                            {% csrf_token %}
+                            <button type="submit" class="like-btn {% if post.has_liked %}liked{% endif %}" aria-label="Like post">
+                                <span class="like-icon">{% if post.has_liked %}♥{% else %}♡{% endif %}</span>
+                                <span class="like-text">{% if post.has_liked %}Liked{% else %}Like{% endif %}</span>
+                                <span class="like-count">({{ post.likes_count }})</span>
+                            </button>
+                        </form>
+                        {% else %}
+                        <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="like-btn" title="Log in to like">
+                            <span class="like-icon">♡</span>
+                            <span class="like-text">Like</span>
+                            <span class="like-count">({{ post.likes_count }})</span>
+                        </a>
+                        {% endif %}
+
+                        <a href="{% url 'post_detail' post.id %}#comments" class="action-item comment-action-link">
+                            <span class="comment-icon">💬</span>
+                            <span class="comment-count-text">{{ post.comments_count }} comment{{ post.comments_count|pluralize }}</span>
+                        </a>
+
+                        <button type="button" class="share-btn" data-share-title="{{ post.title|escape }}" data-share-url="{{ request.scheme }}://{{ request.get_host }}{% url 'post_detail' post.id %}">
+                            <span class="share-icon">↗</span>
+                            <span class="share-text">Share</span>
+                        </button>
+                        <span class="share-toast" style="display: none;">Link copied!</span>
+                    </div>
                 </article>
                 {% empty %}
                 {# Static placeholder articles shown before any posts are published #}

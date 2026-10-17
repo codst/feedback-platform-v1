@@ -1,8 +1,9 @@
 import json
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 from django.urls import reverse
-from .models import Post
+from .models import Post, Like, Comment
 
 
 class PostPublishingFlowTests(TestCase):
@@ -452,3 +453,348 @@ class PostAuthenticationTests(TestCase):
         )
         self.assertEqual(del_res.status_code, 404)
         self.assertTrue(Post.objects.filter(id=post.id).exists())
+
+
+class PostSocialFeaturesTests(TestCase):
+    """
+    Phase 4: Likes, Comments, Sharing, Dedicated Post Page, and Security tests.
+    """
+
+    def setUp(self):
+        self.client = Client(enforce_csrf_checks=True)
+        self.alice = User.objects.create_user(
+            username='alice', email='alice@example.com', password='AlicePass123!'
+        )
+        self.bob = User.objects.create_user(
+            username='bob', email='bob@example.com', password='BobPass456!'
+        )
+        self.charlie = User.objects.create_user(
+            username='charlie', email='charlie@example.com', password='CharliePass789!'
+        )
+        self.post1 = Post.objects.create(
+            title="Alice's First Project",
+            content="Details about project 1 by Alice.",
+            author=self.alice
+        )
+        self.post2 = Post.objects.create(
+            title="Bob's Creative Work",
+            content="Details about project 2 by Bob.",
+            author=self.bob
+        )
+
+    # -----------------------------------------------------------------------
+    # 1. Authenticated users can like and unlike a post
+    # -----------------------------------------------------------------------
+
+    def test_authenticated_user_can_like_and_unlike_post(self):
+        self.client.force_login(self.bob)
+        get_res = self.client.get(reverse('post_detail', args=[self.post1.id]))
+        csrf_token = get_res.cookies['csrftoken'].value
+
+        # First like (AJAX/JSON request)
+        like_res = self.client.post(
+            reverse('toggle_like', args=[self.post1.id]),
+            HTTP_X_CSRFTOKEN=csrf_token,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json'
+        )
+        self.assertEqual(like_res.status_code, 200)
+        data = like_res.json()
+        self.assertTrue(data['liked'])
+        self.assertEqual(data['like_count'], 1)
+        self.assertEqual(Like.objects.filter(post=self.post1, user=self.bob).count(), 1)
+
+        # Unlike (clicking like again removes the like)
+        unlike_res = self.client.post(
+            reverse('toggle_like', args=[self.post1.id]),
+            HTTP_X_CSRFTOKEN=csrf_token,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json'
+        )
+        self.assertEqual(unlike_res.status_code, 200)
+        data2 = unlike_res.json()
+        self.assertFalse(data2['liked'])
+        self.assertEqual(data2['like_count'], 0)
+        self.assertEqual(Like.objects.filter(post=self.post1, user=self.bob).count(), 0)
+
+    # -----------------------------------------------------------------------
+    # 2. Duplicate likes are prevented at database level
+    # -----------------------------------------------------------------------
+
+    def test_duplicate_likes_prevented_by_database_constraint(self):
+        Like.objects.create(post=self.post1, user=self.bob)
+        with self.assertRaises(IntegrityError):
+            Like.objects.create(post=self.post1, user=self.bob)
+
+    # -----------------------------------------------------------------------
+    # 3. Anonymous users cannot like or comment
+    # -----------------------------------------------------------------------
+
+    def test_anonymous_user_cannot_like(self):
+        get_res = self.client.get(reverse('post_detail', args=[self.post1.id]))
+        csrf_token = get_res.cookies['csrftoken'].value
+
+        # JSON request
+        res = self.client.post(
+            reverse('toggle_like', args=[self.post1.id]),
+            HTTP_X_CSRFTOKEN=csrf_token,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json'
+        )
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(Like.objects.count(), 0)
+
+        # Standard form request redirects to login
+        res_form = self.client.post(
+            reverse('toggle_like', args=[self.post1.id]),
+            HTTP_X_CSRFTOKEN=csrf_token
+        )
+        self.assertEqual(res_form.status_code, 302)
+        self.assertIn('/login/', res_form.url)
+        self.assertEqual(Like.objects.count(), 0)
+
+    def test_anonymous_user_cannot_comment(self):
+        get_res = self.client.get(reverse('post_detail', args=[self.post1.id]))
+        csrf_token = get_res.cookies['csrftoken'].value
+
+        # JSON request
+        res = self.client.post(
+            reverse('add_comment', args=[self.post1.id]),
+            data=json.dumps({'content': 'Anonymous comment'}),
+            content_type='application/json',
+            HTTP_X_CSRFTOKEN=csrf_token,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            HTTP_ACCEPT='application/json'
+        )
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(Comment.objects.count(), 0)
+
+        # Form submission redirects to login
+        res_form = self.client.post(
+            reverse('add_comment', args=[self.post1.id]),
+            data={'content': 'Anonymous form comment'},
+            HTTP_X_CSRFTOKEN=csrf_token
+        )
+        self.assertEqual(res_form.status_code, 302)
+        self.assertIn('/login/', res_form.url)
+        self.assertEqual(Comment.objects.count(), 0)
+
+    # -----------------------------------------------------------------------
+    # 4 & 5. Authenticated users can comment; associated with correct user & post
+    # -----------------------------------------------------------------------
+
+    def test_authenticated_user_can_comment_and_author_is_server_enforced(self):
+        self.client.force_login(self.bob)
+        get_res = self.client.get(reverse('post_detail', args=[self.post1.id]))
+        csrf_token = get_res.cookies['csrftoken'].value
+
+        # Bob attempts to spoof author as Alice in request body
+        res = self.client.post(
+            reverse('add_comment', args=[self.post1.id]),
+            data={
+                'content': 'Great job, Alice! Here is some constructive feedback.',
+                'author': self.alice.id,
+                'author_id': self.alice.id,
+                'user': self.alice.username,
+            },
+            HTTP_X_CSRFTOKEN=csrf_token
+        )
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(Comment.objects.count(), 1)
+
+        comment = Comment.objects.first()
+        self.assertEqual(comment.post, self.post1)
+        # Server must enforce Bob as author from session, ignoring spoofed fields
+        self.assertEqual(comment.author, self.bob)
+        self.assertNotEqual(comment.author, self.alice)
+        self.assertEqual(comment.content, 'Great job, Alice! Here is some constructive feedback.')
+
+    def test_empty_or_whitespace_comment_rejected(self):
+        self.client.force_login(self.bob)
+        get_res = self.client.get(reverse('post_detail', args=[self.post1.id]))
+        csrf_token = get_res.cookies['csrftoken'].value
+
+        res = self.client.post(
+            reverse('add_comment', args=[self.post1.id]),
+            data={'content': '   '},
+            HTTP_X_CSRFTOKEN=csrf_token
+        )
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(Comment.objects.count(), 0)
+
+    # -----------------------------------------------------------------------
+    # 6 & 7. Comment author displayed; comments never bleed into other posts
+    # -----------------------------------------------------------------------
+
+    def test_comment_displays_author_username_and_does_not_mix_across_posts(self):
+        Comment.objects.create(
+            post=self.post1, author=self.bob, content="Feedback on Post 1 from Bob"
+        )
+        Comment.objects.create(
+            post=self.post2, author=self.charlie, content="Feedback on Post 2 from Charlie"
+        )
+
+        # Visit Post 1 detail
+        res1 = self.client.get(reverse('post_detail', args=[self.post1.id]))
+        self.assertEqual(res1.status_code, 200)
+        self.assertContains(res1, "Feedback on Post 1 from Bob")
+        self.assertContains(res1, "/users/bob/")
+        self.assertNotContains(res1, "Feedback on Post 2 from Charlie")
+
+        # Visit Post 2 detail
+        res2 = self.client.get(reverse('post_detail', args=[self.post2.id]))
+        self.assertEqual(res2.status_code, 200)
+        self.assertContains(res2, "Feedback on Post 2 from Charlie")
+        self.assertContains(res2, "/users/charlie/")
+        self.assertNotContains(res2, "Feedback on Post 1 from Bob")
+
+    # -----------------------------------------------------------------------
+    # 8. Users cannot edit other users' comments; edit/delete permission rules
+    # -----------------------------------------------------------------------
+
+    def test_comment_editing_permissions(self):
+        comment = Comment.objects.create(
+            post=self.post1, author=self.bob, content="Original Bob Comment"
+        )
+
+        # Alice (post owner) cannot edit Bob's comment
+        self.client.force_login(self.alice)
+        edit_url = reverse('edit_comment', args=[self.post1.id, comment.id])
+        res_alice = self.client.get(edit_url)
+        self.assertEqual(res_alice.status_code, 404)
+
+        # Bob (comment author) can edit his own comment
+        self.client.force_login(self.bob)
+        res_bob = self.client.get(edit_url)
+        self.assertEqual(res_bob.status_code, 200)
+        csrf_token = res_bob.cookies['csrftoken'].value
+
+        post_res = self.client.post(
+            edit_url,
+            data={'content': 'Updated Bob Comment'},
+            HTTP_X_CSRFTOKEN=csrf_token
+        )
+        self.assertEqual(post_res.status_code, 302)
+        comment.refresh_from_db()
+        self.assertEqual(comment.content, 'Updated Bob Comment')
+
+    def test_comment_deletion_permissions(self):
+        # Bob wrote a comment on Alice's post
+        comment = Comment.objects.create(
+            post=self.post1, author=self.bob, content="Bob Comment to Delete"
+        )
+        del_url = reverse('delete_comment', args=[self.post1.id, comment.id])
+
+        # Charlie (unrelated third party) CANNOT delete Bob's comment
+        self.client.force_login(self.charlie)
+        get_res = self.client.get('/')
+        csrf_token = get_res.cookies['csrftoken'].value
+        res_charlie = self.client.post(del_url, HTTP_X_CSRFTOKEN=csrf_token)
+        self.assertEqual(res_charlie.status_code, 404)
+        self.assertTrue(Comment.objects.filter(id=comment.id).exists())
+
+        # Alice (post owner) CAN delete comments on her post (moderation)
+        self.client.force_login(self.alice)
+        res_alice = self.client.post(del_url, HTTP_X_CSRFTOKEN=csrf_token)
+        self.assertEqual(res_alice.status_code, 302)
+        self.assertFalse(Comment.objects.filter(id=comment.id).exists())
+
+        # Re-create comment to verify author can also delete
+        comment2 = Comment.objects.create(
+            post=self.post1, author=self.bob, content="Bob Comment 2"
+        )
+        del_url2 = reverse('delete_comment', args=[self.post1.id, comment2.id])
+        self.client.force_login(self.bob)
+        res_bob = self.client.post(del_url2, HTTP_X_CSRFTOKEN=csrf_token)
+        self.assertEqual(res_bob.status_code, 302)
+        self.assertFalse(Comment.objects.filter(id=comment2.id).exists())
+
+    # -----------------------------------------------------------------------
+    # 9. Unauthorized post editing and deletion remain blocked
+    # -----------------------------------------------------------------------
+
+    def test_unauthorized_post_editing_and_deletion_blocked(self):
+        self.client.force_login(self.bob)
+        edit_url = reverse('edit_post', args=[self.post1.id])
+        del_url = reverse('delete_post', args=[self.post1.id])
+
+        # Bob cannot edit Alice's post
+        self.assertEqual(self.client.get(edit_url).status_code, 404)
+
+        # Bob cannot delete Alice's post
+        get_res = self.client.get('/')
+        csrf_token = get_res.cookies['csrftoken'].value
+        self.assertEqual(self.client.post(del_url, HTTP_X_CSRFTOKEN=csrf_token).status_code, 404)
+        self.assertTrue(Post.objects.filter(id=self.post1.id).exists())
+
+    # -----------------------------------------------------------------------
+    # 10. Dedicated post page works directly
+    # -----------------------------------------------------------------------
+
+    def test_dedicated_post_page_works_directly(self):
+        res = self.client.get(reverse('post_detail', args=[self.post1.id]))
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "Alice&#x27;s First Project")
+        self.assertContains(res, "Details about project 1 by Alice.")
+        self.assertContains(res, "/users/alice/")
+        self.assertContains(res, "Share")
+        self.assertContains(res, "No feedback or comments yet")
+
+    # -----------------------------------------------------------------------
+    # 11. Missing post IDs return 404
+    # -----------------------------------------------------------------------
+
+    def test_missing_post_ids_return_404(self):
+        self.assertEqual(self.client.get('/posts/99999/').status_code, 404)
+
+        get_res = self.client.get('/')
+        csrf_token = get_res.cookies['csrftoken'].value
+        self.client.force_login(self.alice)
+        self.assertEqual(
+            self.client.post('/posts/99999/like/', HTTP_X_CSRFTOKEN=csrf_token).status_code,
+            404
+        )
+        self.assertEqual(
+            self.client.post(
+                '/posts/99999/comments/',
+                data={'content': 'test'},
+                HTTP_X_CSRFTOKEN=csrf_token
+            ).status_code,
+            404
+        )
+
+    # -----------------------------------------------------------------------
+    # 12. Sharing produces the correct permanent post URL
+    # -----------------------------------------------------------------------
+
+    def test_sharing_produces_correct_permanent_post_url(self):
+        res = self.client.get(reverse('post_detail', args=[self.post1.id]))
+        self.assertEqual(res.status_code, 200)
+        expected_path = f"/posts/{self.post1.id}/"
+        self.assertIn(expected_path, res.context['share_url'])
+
+    # -----------------------------------------------------------------------
+    # 13. Explore and API return likes and comments accurately
+    # -----------------------------------------------------------------------
+
+    def test_explore_and_api_return_social_counts(self):
+        Like.objects.create(post=self.post1, user=self.bob)
+        Comment.objects.create(post=self.post1, author=self.charlie, content="Insightful note.")
+
+        # API check
+        self.client.force_login(self.bob)
+        api_res = self.client.get('/api/posts/')
+        self.assertEqual(api_res.status_code, 200)
+        data = api_res.json()['posts']
+        p1 = next(p for p in data if p['id'] == self.post1.id)
+        self.assertEqual(p1['likes_count'], 1)
+        self.assertEqual(p1['comments_count'], 1)
+        self.assertTrue(p1['has_liked'])  # Bob liked it
+        self.assertEqual(p1['detail_url'], f'/posts/{self.post1.id}/')
+
+        # Explore HTML check
+        index_res = self.client.get('/')
+        self.assertEqual(index_res.status_code, 200)
+        self.assertContains(index_res, f"/posts/{self.post1.id}/")
+        self.assertContains(index_res, "(1)")  # Like count
+        self.assertContains(index_res, "1 comment")

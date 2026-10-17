@@ -44,7 +44,7 @@
             {% if user_posts %}
             {% for post in user_posts %}
             <article>
-                <h3>{{ post.title }}</h3>
+                <h3><a href="{% url 'post_detail' post.id %}" class="post-title-link">{{ post.title }}</a></h3>
                 <p>{{ post.content|truncatewords:40 }}</p>
                 <p class="post-meta">Posted on {{ post.created_at|date:"N j, Y" }}</p>
             </article>

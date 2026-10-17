@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.title }} - Feedback Platform</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+    <header>
+        <nav>
+            <a href="{% url 'index' %}">Feedback Platform</a>
+
+            <div>
+                <a href="{% url 'index' %}#explore">Explore</a>
+                <a href="{% url 'create' %}">Create</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'public_profile' user.username %}">{{ user.username }}</a>
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link-btn">Logout</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <article class="post-detail-card" data-post-id="{{ post.id }}">
+            <div class="post-detail-header">
+                <h1>{{ post.title }}</h1>
+                <p class="post-meta">
+                    {% if post.author %}
+                    by <a href="{% url 'public_profile' post.author.username %}">{{ post.author.username }}</a>
+                    {% else %}
+                    by Unknown author
+                    {% endif %}
+                    &middot; Published on {{ post.created_at|date:"N j, Y, P" }}
+                </p>
+            </div>
+
+            {% if user.is_authenticated and post.author == user %}
+            <div class="post-owner-actions">
+                <a href="{% url 'edit_post' post.id %}" class="action-btn-link">Edit Post</a>
+                <form method="post" action="{% url 'delete_post' post.id %}" class="inline-form"
+                    onsubmit="return confirm('Delete post \'{{ post.title|escapejs }}\'? This cannot be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="danger-btn">Delete Post</button>
+                </form>
+            </div>
+            {% endif %}
+
+            <div class="post-full-content">
+                {{ post.content|linebreaks }}
+            </div>
+
+            <!-- Social Action Bar -->
+            <div class="post-action-bar">
+                <form method="post" action="{% url 'toggle_like' post.id %}" class="like-form inline-form" data-post-id="{{ post.id }}">
+                    {% csrf_token %}
+                    <button type="submit" class="like-btn {% if has_liked %}liked{% endif %}" aria-label="Like post">
+                        <span class="like-icon">{% if has_liked %}♥{% else %}♡{% endif %}</span>
+                        <span class="like-text">{% if has_liked %}Liked{% else %}Like{% endif %}</span>
+                        <span class="like-count">({{ like_count }})</span>
+                    </button>
+                </form>
+
+                <a href="#comments" class="action-item comment-count-badge">
+                    <span class="comment-icon">💬</span>
+                    <span class="comment-count-text">{{ comment_count }} comment{{ comment_count|pluralize }}</span>
+                </a>
+
+                <button type="button" class="share-btn" data-share-title="{{ post.title|escape }}" data-share-url="{{ share_url }}">
+                    <span class="share-icon">↗</span>
+                    <span class="share-text">Share</span>
+                </button>
+                <span class="share-toast" style="display: none;">Link copied!</span>
+            </div>
+        </article>
+
+        <section class="comments-section" id="comments">
+            <h2>Discussion &amp; Feedback (<span id="total-comment-count">{{ comment_count }}</span>)</h2>
+
+            <!-- Feedback Framework Prompt -->
+            <div class="feedback-guide-box">
+                <strong>Constructive feedback guidelines:</strong>
+                <span>1. What works well? &middot; 2. What could be improved? &middot; 3. Specific ideas for next steps.</span>
+            </div>
+
+            <!-- Comment Form -->
+            {% if user.is_authenticated %}
+            <form method="post" action="{% url 'add_comment' post.id %}" class="comment-form" id="comment-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="comment-content">Your Feedback or Comment</label>
+                    {{ comment_form.content }}
+                </div>
+                <button type="submit" class="submit-btn">Post Comment</button>
+            </form>
+            {% else %}
+            <div class="login-prompt-card">
+                <p>Want to give feedback or join the discussion?</p>
+                <p>
+                    <a href="{% url 'login' %}?next={% url 'post_detail' post.id %}" class="publish-btn inline-btn">Log in</a>
+                    <span style="margin: 0 8px;">or</span>
+                    <a href="{% url 'register' %}?next={% url 'post_detail' post.id %}" class="cancel-link">Register</a>
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Comments List -->
+            <div class="comment-list" id="comment-list">
+                {% for comment in comments %}
+                <article class="comment-card" id="comment-{{ comment.id }}">
+                    <div class="comment-header">
+                        <div class="comment-author-info">
+                            <strong><a href="{% url 'public_profile' comment.author.username %}">{{ comment.author.username }}</a></strong>
+                            <span class="comment-date">&middot; {{ comment.created_at|date:"N j, Y, P" }}</span>
+                            {% if comment.updated_at != comment.created_at %}
+                            <span class="comment-edited">(edited)</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="comment-actions">
+                            {% if user.is_authenticated and comment.author == user %}
+                            <a href="{% url 'edit_comment' post.id comment.id %}" class="action-btn-link">Edit</a>
+                            {% endif %}
+
+                            {% if user.is_authenticated and comment.author == user or user.is_authenticated and post.author == user %}
+                            <form method="post" action="{% url 'delete_comment' post.id comment.id %}" class="inline-form"
+                                onsubmit="return confirm('Delete this comment?');">
+                                {% csrf_token %}
+                                <button type="submit" class="danger-btn">Delete</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="comment-body">
+                        {{ comment.content|linebreaks }}
+                    </div>
+                </article>
+                {% empty %}
+                <div class="empty-state" id="no-comments-msg">
+                    <p>No feedback or comments yet. Be the first to share your thoughts!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Your Platform</p>
+    </footer>
+
+    <script src="/script.js"></script>
+</body>
+
+</html>

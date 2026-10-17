@@ -365,3 +365,276 @@ footer {
     margin-top: -16px;
     margin-bottom: 0;
 }
+
+/* -------------------------------------------------------------------------
+   Phase 4: Social Features (Likes, Comments, Sharing, Post Discussion)
+   ------------------------------------------------------------------------- */
+
+.explore-post-card {
+    padding: 28px 0;
+    border-top: 1px solid #ddd;
+}
+
+.explore-post-card:last-child {
+    border-bottom: 1px solid #ddd;
+}
+
+.post-title-link {
+    color: #111;
+    text-decoration: none;
+}
+
+.post-title-link:hover {
+    text-decoration: underline;
+}
+
+.post-card-actions,
+.post-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.post-action-bar {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+/* Like Button */
+.like-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #333;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.like-btn:hover {
+    background: #f0f0f0;
+    border-color: #bbb;
+}
+
+.like-btn.liked {
+    background: #ffebee;
+    border-color: #ef9a9a;
+    color: #c62828;
+    font-weight: 600;
+}
+
+.like-icon {
+    font-size: 15px;
+    line-height: 1;
+}
+
+/* Comment Links & Badges */
+.comment-action-link,
+.comment-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #555;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 6px 4px;
+}
+
+.comment-action-link:hover {
+    color: #111;
+    text-decoration: underline;
+}
+
+/* Share Button */
+.share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #444;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.share-btn:hover {
+    background: #f5f5f5;
+    border-color: #bbb;
+    color: #111;
+}
+
+.share-toast {
+    font-size: 13px;
+    color: #1b5e20;
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-left: 4px;
+    display: inline-block;
+}
+
+/* Post Detail Card */
+.post-detail-card {
+    padding-bottom: 24px;
+}
+
+.post-detail-header h1 {
+    margin-bottom: 8px;
+}
+
+.post-full-content {
+    font-size: 18px;
+    line-height: 1.7;
+    color: #222;
+    margin: 28px 0;
+    word-break: break-word;
+}
+
+.post-owner-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 12px;
+    margin-bottom: 16px;
+}
+
+.action-btn-link {
+    font-size: 14px;
+    color: #555;
+    text-decoration: underline;
+}
+
+.action-btn-link:hover {
+    color: #111;
+}
+
+/* Constructive Feedback Guidance Banner */
+.feedback-guide-box {
+    background: #f8f9fa;
+    border-left: 4px solid #111;
+    border-radius: 2px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 28px;
+    line-height: 1.5;
+}
+
+.feedback-guide-box strong {
+    display: block;
+    color: #111;
+    margin-bottom: 4px;
+}
+
+/* Comments Section */
+.comments-section {
+    margin-top: 48px;
+    border-top: 1px solid #ddd;
+    padding-top: 36px;
+}
+
+.comments-section h2 {
+    font-size: 26px;
+    margin-bottom: 24px;
+}
+
+.comment-form {
+    margin-bottom: 40px;
+}
+
+.comment-form textarea {
+    min-height: 110px;
+    border: 1px solid #ccc;
+}
+
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.comment-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 18px 20px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.comment-author-info strong a {
+    color: #111;
+    text-decoration: none;
+}
+
+.comment-author-info strong a:hover {
+    text-decoration: underline;
+}
+
+.comment-date {
+    color: #777;
+    margin-left: 4px;
+}
+
+.comment-edited {
+    color: #999;
+    font-style: italic;
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.comment-body {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.comment-body p {
+    margin: 0;
+}
+
+.login-prompt-card {
+    background: #fafafa;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    padding: 28px 20px;
+    margin-bottom: 36px;
+    text-align: center;
+}
+
+.login-prompt-card p {
+    margin: 6px 0;
+    color: #555;
+    font-size: 15px;
+}
+
+.inline-btn {
+    display: inline-block;
+    text-decoration: none;
+}
