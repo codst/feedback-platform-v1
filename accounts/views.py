@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 from django.http import HttpResponseNotAllowed
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from .forms import RegisterForm, LoginForm
 
 
@@ -26,6 +27,7 @@ def get_safe_redirect_url(request, redirect_to=None):
     return getattr(settings, 'LOGIN_REDIRECT_URL', '/')
 
 
+@require_http_methods(["GET", "POST", "HEAD"])
 def register_view(request):
     """
     User registration view.
@@ -55,6 +57,7 @@ def register_view(request):
     })
 
 
+@require_http_methods(["GET", "POST", "HEAD"])
 def login_view(request):
     """
     User login view.
@@ -84,13 +87,15 @@ def login_view(request):
 
 
 @require_POST
+@login_required
 def logout_view(request):
     """
     User logout view.
-    Requires POST method and valid CSRF token to prevent logout CSRF attacks.
+    Requires POST method, authenticated session, and valid CSRF token to prevent logout CSRF attacks.
     Flushes the user session and redirects.
     """
     logout(request)
     messages.info(request, "You have been successfully logged out.")
     logout_redirect = getattr(settings, 'LOGOUT_REDIRECT_URL', '/')
     return redirect(logout_redirect)
+

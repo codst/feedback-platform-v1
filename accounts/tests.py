@@ -262,3 +262,40 @@ class AccountsAuthenticationTests(TestCase):
         self.assertContains(auth_response, 'existinguser')
         self.assertNotContains(auth_response, '>Login<')
         self.assertNotContains(auth_response, '>Register<')
+
+    def test_anonymous_cannot_access_logout_action(self):
+        """Phase 5.1: Anonymous users cannot access protected logout action."""
+        index_res = self.client.get(reverse('index'))
+        csrf_token = index_res.cookies['csrftoken'].value
+
+        # Anonymous POST to logout must redirect to login
+        response = self.client.post(reverse('logout'), HTTP_X_CSRFTOKEN=csrf_token)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response.url)
+
+    def test_anonymous_logout_via_get_rejected_with_405(self):
+        """Phase 5.1: GET request to logout endpoint is rejected with 405 even when unauthenticated."""
+        response = self.client.get(reverse('logout'))
+        self.assertEqual(response.status_code, 405)
+
+    def test_disallowed_http_methods_rejected_on_auth_views(self):
+        """Unsupported HTTP methods return 405."""
+
+        register_page = self.client.get(reverse('register'))
+        csrf_token = register_page.cookies['csrftoken'].value
+
+        reg_delete = self.client.delete(
+            reverse('register'),
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(reg_delete.status_code, 405)
+
+        login_page = self.client.get(reverse('login'))
+        csrf_token = login_page.cookies['csrftoken'].value
+
+        login_put = self.client.put(
+            reverse('login'),
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(login_put.status_code, 405)
+

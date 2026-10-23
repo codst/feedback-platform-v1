@@ -35,6 +35,20 @@ class PostForm(forms.ModelForm):
             },
         }
 
+    def clean_title(self):
+        title = self.cleaned_data.get('title', '').strip()
+        if not title:
+            raise forms.ValidationError('Please enter a title.')
+        if len(title) > 200:
+            raise forms.ValidationError('Title must be 200 characters or fewer.')
+        return title
+
+    def clean_content(self):
+        content = self.cleaned_data.get('content', '').strip()
+        if not content:
+            raise forms.ValidationError('Please enter some content.')
+        return content
+
 
 class CommentForm(forms.ModelForm):
     """

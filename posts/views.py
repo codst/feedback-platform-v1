@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.db.models import Count
 from django.urls import reverse
 from .forms import PostForm, CommentForm
@@ -18,6 +18,7 @@ User = get_user_model()
 # Public views (no login required)
 # ---------------------------------------------------------------------------
 
+@require_http_methods(["GET", "HEAD"])
 @ensure_csrf_cookie
 def index(request):
     """Homepage: shows the hero section and the Explore section with all posts."""
@@ -36,29 +37,33 @@ def index(request):
     return render(request, 'index.html', {'posts': posts})
 
 
+@require_http_methods(["GET", "HEAD"])
 def explore(request):
     return redirect('/#explore')
 
 
+@require_http_methods(["GET", "HEAD"])
 def project(request):
     """
     Legacy/fallback project route.
-    If ?id=X is present, redirects to /posts/X/.
+    If ?id=X is present, validates that it is numeric and redirects to /posts/X/.
     Otherwise, redirects to the latest post or explore.
     """
     post_id = request.GET.get('id')
-    if post_id:
-        return redirect('post_detail', post_id=post_id)
+    if post_id and post_id.isdigit():
+        return redirect('post_detail', post_id=int(post_id))
     latest_post = Post.objects.first()
     if latest_post:
         return redirect('post_detail', post_id=latest_post.id)
     return redirect('/#explore')
 
 
+@require_http_methods(["GET", "HEAD"])
 def feedback(request):
     return render(request, 'feedback.html')
 
 
+@require_http_methods(["GET", "HEAD"])
 @ensure_csrf_cookie
 def post_detail(request, post_id):
     """
@@ -87,6 +92,7 @@ def post_detail(request, post_id):
     })
 
 
+@require_http_methods(["GET", "HEAD"])
 def public_profile(request, username):
     """
     Public profile page for any registered user.
@@ -106,11 +112,13 @@ def public_profile(request, username):
     })
 
 
+
 # ---------------------------------------------------------------------------
 # Create post (login required)
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_http_methods(["GET", "POST", "HEAD"])
 @ensure_csrf_cookie
 def create(request):
     """
@@ -141,6 +149,7 @@ def create(request):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_http_methods(["GET", "POST", "HEAD"])
 def edit_post(request, post_id):
     """
     Edit an existing post. Requires login AND ownership.
@@ -152,13 +161,45 @@ def edit_post(request, post_id):
     """
     post = get_object_or_404(Post, id=post_id, author=request.user)
 
+    is_json = (
+        request.path.startswith('/api/') or
+        request.headers.get('x-requested-with') == 'XMLHttpRequest' or
+        'application/json' in request.headers.get('Accept', '') or
+        (request.content_type and 'application/json' in request.content_type)
+    )
+
     if request.method == 'POST':
-        form = PostForm(request.POST, instance=post)
+        if request.content_type and 'application/json' in request.content_type:
+            try:
+                body = json.loads(request.body.decode('utf-8'))
+                title = body.get('title', '').strip()
+                content = body.get('content', '').strip()
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+            form = PostForm({'title': title, 'content': content}, instance=post)
+        else:
+            form = PostForm(request.POST, instance=post)
+
         if form.is_valid():
-            form.save()
-            messages.success(request, f'Your post "{post.title}" has been updated.')
+            updated_post = form.save(commit=False)
+            updated_post.author = request.user  # Server-enforced: author can never be changed
+            updated_post.save()
+            messages.success(request, f'Your post "{updated_post.title}" has been updated.')
+            if is_json:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Post updated successfully.',
+                    'post': {
+                        'id': updated_post.id,
+                        'title': updated_post.title,
+                        'content': updated_post.content,
+                    }
+                })
             return redirect('dashboard')
-        # Form invalid — fall through to render with errors
+
+        if is_json:
+            errors = [err for errlist in form.errors.values() for err in errlist]
+            return JsonResponse({'error': ' '.join(errors)}, status=400)
     else:
         form = PostForm(instance=post)
 
@@ -169,7 +210,6 @@ def edit_post(request, post_id):
 # Delete post (login required + ownership check + POST only)
 # ---------------------------------------------------------------------------
 
-@login_required
 @require_POST
 def delete_post(request, post_id):
     """
@@ -179,10 +219,29 @@ def delete_post(request, post_id):
     The CSRF middleware protects this form from cross-site request forgery.
     Ownership is verified server-side — no client input can override it.
     """
+    is_json = (
+        request.path.startswith('/api/') or
+        request.headers.get('x-requested-with') == 'XMLHttpRequest' or
+        'application/json' in request.headers.get('Accept', '') or
+        (request.content_type and 'application/json' in request.content_type)
+    )
+
+    if not request.user.is_authenticated:
+        if is_json:
+            return JsonResponse(
+                {'error': 'You must be logged in to delete posts.', 'login_required': True},
+                status=401
+            )
+        return redirect(f'/login/?next=/posts/{post_id}/delete/')
+
     post = get_object_or_404(Post, id=post_id, author=request.user)
     title = post.title
     post.delete()
     messages.success(request, f'Your post "{title}" has been deleted.')
+
+    if is_json:
+        return JsonResponse({'success': True, 'message': 'Post deleted.'})
+
     return redirect('dashboard')
 
 
@@ -191,6 +250,7 @@ def delete_post(request, post_id):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_http_methods(["GET", "HEAD"])
 def dashboard(request):
     """
     Personal dashboard for the authenticated user.
@@ -202,6 +262,7 @@ def dashboard(request):
     return render(request, 'dashboard.html', {
         'user_posts': user_posts,
     })
+
 
 
 # ---------------------------------------------------------------------------
@@ -304,6 +365,7 @@ def toggle_like(request, post_id):
     Supports both JSON (AJAX) responses and form-POST redirects.
     """
     is_json = (
+        request.path.startswith('/api/') or
         request.headers.get('x-requested-with') == 'XMLHttpRequest' or
         'application/json' in request.headers.get('Accept', '') or
         (request.content_type and 'application/json' in request.content_type)
@@ -347,6 +409,7 @@ def add_comment(request, post_id):
     Assigns author = request.user and post = post server-side.
     """
     is_json = (
+        request.path.startswith('/api/') or
         request.headers.get('x-requested-with') == 'XMLHttpRequest' or
         'application/json' in request.headers.get('Accept', '') or
         (request.content_type and 'application/json' in request.content_type)
@@ -407,6 +470,7 @@ def add_comment(request, post_id):
 
 
 @login_required
+@require_http_methods(["GET", "POST", "HEAD"])
 def edit_comment(request, post_id, comment_id):
     """
     Edit an existing comment. Only the comment's author can edit.
@@ -415,12 +479,45 @@ def edit_comment(request, post_id, comment_id):
     post = get_object_or_404(Post, id=post_id)
     comment = get_object_or_404(Comment, id=comment_id, post=post, author=request.user)
 
+    is_json = (
+        request.path.startswith('/api/') or
+        request.headers.get('x-requested-with') == 'XMLHttpRequest' or
+        'application/json' in request.headers.get('Accept', '') or
+        (request.content_type and 'application/json' in request.content_type)
+    )
+
     if request.method == 'POST':
-        form = CommentForm(request.POST, instance=comment)
+        if request.content_type and 'application/json' in request.content_type:
+            try:
+                body = json.loads(request.body.decode('utf-8'))
+                content = body.get('content', '').strip()
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return JsonResponse({'error': 'Invalid JSON data.'}, status=400)
+            form = CommentForm({'content': content}, instance=comment)
+        else:
+            form = CommentForm(request.POST, instance=comment)
+
         if form.is_valid():
-            form.save()
+            updated_comment = form.save(commit=False)
+            updated_comment.author = request.user
+            updated_comment.post = post
+            updated_comment.save()
             messages.success(request, 'Your comment has been updated.')
+
+            if is_json:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Comment updated successfully.',
+                    'comment': {
+                        'id': updated_comment.id,
+                        'content': updated_comment.content,
+                    }
+                })
             return redirect('post_detail', post_id=post.id)
+
+        if is_json:
+            errors = [err for errlist in form.errors.values() for err in errlist]
+            return JsonResponse({'error': ' '.join(errors)}, status=400)
     else:
         form = CommentForm(instance=comment)
 
@@ -431,7 +528,6 @@ def edit_comment(request, post_id, comment_id):
     })
 
 
-@login_required
 @require_POST
 def delete_comment(request, post_id, comment_id):
     """
@@ -441,6 +537,22 @@ def delete_comment(request, post_id, comment_id):
     2) Post owner (moderating comments on their own post)
     Returns 404 for unauthorized users to prevent existence leak.
     """
+    is_json = (
+        request.path.startswith('/api/') or
+        request.headers.get('x-requested-with') == 'XMLHttpRequest' or
+        'application/json' in request.headers.get('Accept', '') or
+        (request.content_type and 'application/json' in request.content_type)
+    )
+
+    if not request.user.is_authenticated:
+        if is_json:
+            return JsonResponse(
+                {'error': 'You must be logged in to delete comments.', 'login_required': True},
+                status=401
+            )
+        messages.error(request, 'Please log in.')
+        return redirect(f'/login/?next=/posts/{post_id}/')
+
     post = get_object_or_404(Post, id=post_id)
     comment = get_object_or_404(Comment, id=comment_id, post=post)
 
@@ -450,11 +562,8 @@ def delete_comment(request, post_id, comment_id):
     comment.delete()
     messages.success(request, 'Comment has been deleted.')
 
-    is_json = (
-        request.headers.get('x-requested-with') == 'XMLHttpRequest' or
-        'application/json' in request.headers.get('Accept', '')
-    )
     if is_json:
         return JsonResponse({'success': True, 'comment_count': post.comments.count()})
 
     return redirect('post_detail', post_id=post.id)
+
