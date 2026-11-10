@@ -1,0 +1,17 @@
+{
+    "venvPath": ".",
+    "venv": ".venv",
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        ".venv"
+    ],
+    "typeCheckingMode": "basic",
+    "reportMissingTypeStubs": false,
+    "reportAttributeAccessIssue": false,
+    "reportOptionalMemberAccess": false,
+    "reportFunctionMemberAccess": false,
+    "reportAssignmentType": false,
+    "reportIncompatibleVariableOverride": false,
+    "reportOptionalSubscript": false
+}

@@ -146,3 +146,11 @@ SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 
+# Email Configuration
+# Email Configuration (Development)
+MAILERS = {
+    "default": {
+        "BACKEND": "django.core.mail.backends.console.EmailBackend",
+    }
+}
+DEFAULT_FROM_EMAIL = 'noreply@localhost'

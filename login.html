@@ -87,6 +87,8 @@
             </form>
 
             <div class="auth-footer">
+                <a href="{% url 'password_reset' %}">Forgot password?</a>
+                <br><br>
                 Don't have an account yet? <a
                     href="{% url 'register' %}{% if next %}?next={{ next }}{% endif %}">Register here</a>.
             </div>
