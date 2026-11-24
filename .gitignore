@@ -1,0 +1,29 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables
+.env
+*.env
+.env.*
+
+# SQLite database
+db.sqlite3
+*.sqlite3
+
+# Static files collected for production
+staticfiles/
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Editor and IDE configurations
+.vscode/
+.idea/
+*.swp
+*~

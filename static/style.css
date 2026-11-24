@@ -1,0 +1,640 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: #111;
+    background: #fff;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 24px 40px;
+    border-bottom: 1px solid #ddd;
+}
+
+nav div {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.logout-form {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+}
+
+.nav-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 16px;
+    color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.nav-link-btn:hover {
+    text-decoration: underline;
+}
+
+.nav-user {
+    font-size: 16px;
+    color: #555;
+    font-weight: bold;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 80px 40px;
+}
+
+section {
+    margin-bottom: 100px;
+}
+
+h1 {
+    font-size: 64px;
+    line-height: 1.05;
+    margin-bottom: 24px;
+}
+
+h2 {
+    font-size: 32px;
+    margin-bottom: 32px;
+}
+
+article {
+    padding: 28px 0;
+    border-top: 1px solid #ddd;
+}
+
+article:last-child {
+    border-bottom: 1px solid #ddd;
+}
+
+article h3 {
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+
+footer {
+    border-top: 1px solid #ddd;
+    padding: 30px 40px;
+}
+
+/* Alert & Message styles */
+.messages {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px 0;
+}
+
+.alert {
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+    border: 1px solid #c8e6c9;
+}
+
+.alert-error {
+    background-color: #ffebee;
+    color: #b71c1c;
+    border: 1px solid #ffcdd2;
+}
+
+.alert-info {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    border: 1px solid #bbdefb;
+}
+
+/* Form styles */
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    font-family: Arial, sans-serif;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    min-height: 44px;
+}
+
+.form-group textarea {
+    min-height: 200px;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #111;
+    background-color: #fafafa;
+}
+
+.field-error {
+    color: #d32f2f;
+    font-size: 14px;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.field-help {
+    color: #666;
+    font-size: 13px;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+.field-help ul {
+    margin: 4px 0 0 18px;
+    padding: 0;
+}
+
+.auth-card {
+    max-width: 480px;
+}
+
+.auth-footer {
+    margin-top: 24px;
+    font-size: 15px;
+    color: #666;
+}
+
+.auth-footer a {
+    color: #111;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.publish-btn,
+.submit-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    background: #111;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.publish-btn:hover,
+.submit-btn:hover {
+    background: #333;
+}
+
+/* Post metadata (author, date) */
+.post-meta {
+    color: #666;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.post-meta a {
+    color: #333;
+    text-decoration: underline;
+}
+
+.post-meta a:hover {
+    color: #111;
+}
+
+/* Dashboard */
+.dashboard-subtitle {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 32px;
+}
+
+.dashboard-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 0;
+}
+
+.dashboard-actions a:not(.publish-btn) {
+    font-size: 15px;
+    color: #555;
+    text-decoration: underline;
+}
+
+.dashboard-post {
+    padding: 24px 0;
+    border-top: 1px solid #ddd;
+}
+
+.dashboard-post:last-child {
+    border-bottom: 1px solid #ddd;
+}
+
+.dashboard-post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.dashboard-post-header h3 {
+    font-size: 20px;
+    margin: 0;
+}
+
+.dashboard-post-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.dashboard-post-actions a {
+    font-size: 14px;
+    color: #555;
+    text-decoration: underline;
+}
+
+.dashboard-post-actions a:hover {
+    color: #111;
+}
+
+.post-content-preview {
+    color: #444;
+    margin-bottom: 8px;
+}
+
+/* Danger (delete) button */
+.danger-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: 14px;
+    color: #b71c1c;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.danger-btn:hover {
+    color: #7f0000;
+}
+
+/* Inline form (used for delete button inside dashboard article) */
+.inline-form {
+    display: inline;
+    margin: 0;
+}
+
+/* Form row (button + cancel link side by side) */
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 8px;
+}
+
+.cancel-link {
+    font-size: 15px;
+    color: #555;
+    text-decoration: underline;
+}
+
+.cancel-link:hover {
+    color: #111;
+}
+
+/* Empty state */
+.empty-state {
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.empty-state p {
+    color: #666;
+    font-size: 16px;
+    margin: 0;
+}
+
+.empty-state-text {
+    color: #666;
+    font-size: 16px;
+    padding: 40px 0;
+}
+
+/* Profile page */
+.profile-joined {
+    color: #888;
+    font-size: 15px;
+    margin-top: -16px;
+    margin-bottom: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Phase 4: Social Features (Likes, Comments, Sharing, Post Discussion)
+   ------------------------------------------------------------------------- */
+
+.explore-post-card {
+    padding: 28px 0;
+    border-top: 1px solid #ddd;
+}
+
+.explore-post-card:last-child {
+    border-bottom: 1px solid #ddd;
+}
+
+.post-title-link {
+    color: #111;
+    text-decoration: none;
+}
+
+.post-title-link:hover {
+    text-decoration: underline;
+}
+
+.post-card-actions,
+.post-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.post-action-bar {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+/* Like Button */
+.like-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #333;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.like-btn:hover {
+    background: #f0f0f0;
+    border-color: #bbb;
+}
+
+.like-btn.liked {
+    background: #ffebee;
+    border-color: #ef9a9a;
+    color: #c62828;
+    font-weight: 600;
+}
+
+.like-icon {
+    font-size: 15px;
+    line-height: 1;
+}
+
+/* Comment Links & Badges */
+.comment-action-link,
+.comment-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #555;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 6px 4px;
+}
+
+.comment-action-link:hover {
+    color: #111;
+    text-decoration: underline;
+}
+
+/* Share Button */
+.share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #444;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.share-btn:hover {
+    background: #f5f5f5;
+    border-color: #bbb;
+    color: #111;
+}
+
+.share-toast {
+    font-size: 13px;
+    color: #1b5e20;
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-left: 4px;
+    display: inline-block;
+}
+
+/* Post Detail Card */
+.post-detail-card {
+    padding-bottom: 24px;
+}
+
+.post-detail-header h1 {
+    margin-bottom: 8px;
+}
+
+.post-full-content {
+    font-size: 18px;
+    line-height: 1.7;
+    color: #222;
+    margin: 28px 0;
+    word-break: break-word;
+}
+
+.post-owner-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 12px;
+    margin-bottom: 16px;
+}
+
+.action-btn-link {
+    font-size: 14px;
+    color: #555;
+    text-decoration: underline;
+}
+
+.action-btn-link:hover {
+    color: #111;
+}
+
+/* Constructive Feedback Guidance Banner */
+.feedback-guide-box {
+    background: #f8f9fa;
+    border-left: 4px solid #111;
+    border-radius: 2px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 28px;
+    line-height: 1.5;
+}
+
+.feedback-guide-box strong {
+    display: block;
+    color: #111;
+    margin-bottom: 4px;
+}
+
+/* Comments Section */
+.comments-section {
+    margin-top: 48px;
+    border-top: 1px solid #ddd;
+    padding-top: 36px;
+}
+
+.comments-section h2 {
+    font-size: 26px;
+    margin-bottom: 24px;
+}
+
+.comment-form {
+    margin-bottom: 40px;
+}
+
+.comment-form textarea {
+    min-height: 110px;
+    border: 1px solid #ccc;
+}
+
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.comment-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 18px 20px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.comment-author-info strong a {
+    color: #111;
+    text-decoration: none;
+}
+
+.comment-author-info strong a:hover {
+    text-decoration: underline;
+}
+
+.comment-date {
+    color: #777;
+    margin-left: 4px;
+}
+
+.comment-edited {
+    color: #999;
+    font-style: italic;
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.comment-body {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.comment-body p {
+    margin: 0;
+}
+
+.login-prompt-card {
+    background: #fafafa;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    padding: 28px 20px;
+    margin-bottom: 36px;
+    text-align: center;
+}
+
+.login-prompt-card p {
+    margin: 6px 0;
+    color: #555;
+    font-size: 15px;
+}
+
+.inline-btn {
+    display: inline-block;
+    text-decoration: none;
+}
